@@ -23,7 +23,7 @@ class StoryGenerator:
 
 
         if  serviceurl:
-            return ChatOpenAI(model="gpt-4o-mini", api_key=consumerkey, base_url=serviceurl)
+            return ChatOpenAI(model="gpt-4o-mini",  base_url=serviceurl)
 
         return ChatOpenAI(model="gpt-4o-mini")
 
