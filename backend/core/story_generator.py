@@ -10,7 +10,7 @@ from models.story import Story, StoryNode
 from core.models import StoryLLMResponse, StoryNodeLLM
 from dotenv import load_dotenv
 import os
-
+import requests
 load_dotenv()
 
 
@@ -18,9 +18,16 @@ class StoryGenerator:
 
     @classmethod
     def _get_llm(cls):
-
         serviceurl = os.getenv("CHOREO_OPENAI_CONNECTION_SERVICEURL")
         choreo_api_key = os.getenv("CHOREO_API_KEY")
+        RESOURCE_PATH = "v1/stories"
+
+        headers = {
+            'Choreo-API-Key': choreo_api_key
+        }
+        # Provide the correct resource path
+        response = requests.get(f'{serviceurl}/{RESOURCE_PATH}', headers=headers)
+
 
         if  choreo_api_key and serviceurl:
             return ChatOpenAI(model="gpt-4o-mini", api_key =choreo_api_key, base_url=serviceurl)
