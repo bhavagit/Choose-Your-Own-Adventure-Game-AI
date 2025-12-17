@@ -18,20 +18,27 @@ class StoryGenerator:
 
     @classmethod
     def _get_llm(cls):
-        serviceurl = os.getenv("CHOREO_OPENAI_CONNECTION_SERVICEURL")
-        choreo_api_key = os.getenv("CHOREO_API_KEY")
-        RESOURCE_PATH = "v1/stories"
+        # 1. Fetch the necessary variables
+        choreo_service_url = os.getenv("CHOREO_OPENAI_CONNECTION_SERVICEURL")
 
-        headers = {
-            'Choreo-API-Key': choreo_api_key
-        }
-        # Provide the correct resource path
-        response = requests.get(f'{serviceurl}/{RESOURCE_PATH}', headers=headers)
+        # NOTE: LangChain's ChatOpenAI requires the actual OpenAI API Key.
+        # It's best practice to fetch it separately.
+        # The Choreo key is often only needed if you manually make HTTP requests,
+        # but LangChain handles the HTTP request internally.
+        openai_api_key = os.getenv("OPENAI_API_KEY")
 
+        # 2. Check for Choreo Proxy Configuration
+        if choreo_service_url and openai_api_key:
+            # When using a proxy (base_url), pass the proxy URL and the actual API key.
+            return ChatOpenAI(
+                model="gpt-4o-mini",
+                api_key=openai_api_key,
+                base_url=choreo_service_url
+            )
 
-        if  choreo_api_key and serviceurl:
-            return ChatOpenAI(model="gpt-4o-mini", api_key =choreo_api_key, base_url=serviceurl)
-
+        # 3. Fallback to Direct OpenAI Connection (standard endpoint)
+        # This relies on the OPENAI_API_KEY being set in the environment
+        # for the default base URL.
         return ChatOpenAI(model="gpt-4o-mini")
 
     @classmethod
