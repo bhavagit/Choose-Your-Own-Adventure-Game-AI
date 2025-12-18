@@ -17,29 +17,41 @@ load_dotenv()
 class StoryGenerator:
 
     @classmethod
-    def _get_llm(cls):
-        # 1. Fetch the necessary variables
-        choreo_service_url = os.getenv("CHOREO_OPENAI_CONNECTION_SERVICEURL")
 
-        # NOTE: LangChain's ChatOpenAI requires the actual OpenAI API Key.
-        # It's best practice to fetch it separately.
-        # The Choreo key is often only needed if you manually make HTTP requests,
-        # but LangChain handles the HTTP request internally.
-        openai_api_key = os.getenv("OPENAI_API_KEY")
+    import os
+    import requests
+    from langchain_openai import ChatOpenAI
 
-        # 2. Check for Choreo Proxy Configuration
-        if choreo_service_url and openai_api_key:
-            # When using a proxy (base_url), pass the proxy URL and the actual API key.
-            return ChatOpenAI(
-                model="gpt-4o-mini",
-                api_key=openai_api_key,
-                base_url=choreo_service_url
-            )
+    class StoryGenerator:
 
-        # 3. Fallback to Direct OpenAI Connection (standard endpoint)
-        # This relies on the OPENAI_API_KEY being set in the environment
-        # for the default base URL.
-        return ChatOpenAI(model="gpt-4o-mini")
+        @classmethod
+        def _get_llm(cls):
+            # 1. Fetch the necessary variables
+            choreo_service_url = os.getenv("CHOREO_OPENAI_CONNECTION_SERVICEURL")
+            # In Choreo, your API key is often stored in CHOREO_API_KEY
+            openai_api_key = os.getenv("CHOREO_API_KEY") or os.getenv("OPENAI_API_KEY")
+
+            # 2. Ensure we have an API key (INDENTED CORRECTLY NOW)
+            if not openai_api_key:
+                print("Error: No API key found in environment variables.")
+                return None
+
+                # 3. Configure ChatOpenAI based on Choreo proxy availability
+            if choreo_service_url:
+                # This block is now "REACHABLE" because the return above is conditional
+                print(f"Connecting via Choreo Proxy: {choreo_service_url}")
+                return ChatOpenAI(
+                    model="gpt-4o-mini",
+                    api_key=openai_api_key,
+                    base_url=choreo_service_url
+                )
+            else:
+                print("Warning: Choreo URL not set. Using default OpenAI endpoint.")
+                return ChatOpenAI(
+                    model="gpt-4o-mini",
+                    api_key=openai_api_key
+                )
+
 
     @classmethod
     def generate_story(cls, db: Session, session_id: str, theme: str = "fantasy") -> Story:
